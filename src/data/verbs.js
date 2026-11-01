@@ -1,5 +1,5 @@
-// Verbos: [infinitivo, pasado simple, participio, -ing, 3.ª persona (he/she/it), traducción]
-const VERBS = [
+// [infinitivo, pasado simple, participio, -ing, 3.ª persona (he/she), traducción]
+const IRREGULAR = [
   ['begin', 'began', 'begun', 'beginning', 'begins', 'empezar'],
   ['break', 'broke', 'broken', 'breaking', 'breaks', 'romper'],
   ['bring', 'brought', 'brought', 'bringing', 'brings', 'traer'],
@@ -71,21 +71,23 @@ const VERBS = [
   ['wear', 'wore', 'worn', 'wearing', 'wears', 'usar puesto'],
   ['win', 'won', 'won', 'winning', 'wins', 'ganar'],
   ['write', 'wrote', 'written', 'writing', 'writes', 'escribir'],
-  // Regulares
+];
+
+const REGULAR = [
   ['work', 'worked', 'worked', 'working', 'works', 'trabajar'],
   ['play', 'played', 'played', 'playing', 'plays', 'jugar'],
   ['study', 'studied', 'studied', 'studying', 'studies', 'estudiar'],
   ['watch', 'watched', 'watched', 'watching', 'watches', 'mirar'],
   ['listen', 'listened', 'listened', 'listening', 'listens', 'escuchar'],
   ['walk', 'walked', 'walked', 'walking', 'walks', 'caminar'],
-  ['talk', 'talked', 'talked', 'talking', 'talks', 'hablar'],
+  ['talk', 'talked', 'talked', 'talking', 'talks', 'conversar'],
   ['open', 'opened', 'opened', 'opening', 'opens', 'abrir'],
   ['help', 'helped', 'helped', 'helping', 'helps', 'ayudar'],
   ['visit', 'visited', 'visited', 'visiting', 'visits', 'visitar'],
   ['cook', 'cooked', 'cooked', 'cooking', 'cooks', 'cocinar'],
   ['clean', 'cleaned', 'cleaned', 'cleaning', 'cleans', 'limpiar'],
   ['call', 'called', 'called', 'calling', 'calls', 'llamar'],
-  ['start', 'started', 'started', 'starting', 'starts', 'empezar'],
+  ['start', 'started', 'started', 'starting', 'starts', 'comenzar'],
   ['finish', 'finished', 'finished', 'finishing', 'finishes', 'terminar'],
   ['live', 'lived', 'lived', 'living', 'lives', 'vivir'],
   ['love', 'loved', 'loved', 'loving', 'loves', 'amar'],
@@ -95,4 +97,12 @@ const VERBS = [
   ['stop', 'stopped', 'stopped', 'stopping', 'stops', 'parar'],
   ['plan', 'planned', 'planned', 'planning', 'plans', 'planear'],
   ['travel', 'traveled', 'traveled', 'traveling', 'travels', 'viajar'],
-].map(([base, past, pp, ing, third, es]) => ({ base, past, pp, ing, third, es }));
+];
+
+const toVerb = irregular => ([base, past, pp, ing, third, es]) =>
+  ({ base, past, pp, ing, third, es, irregular });
+
+export const VERBS = [...IRREGULAR.map(toVerb(true)), ...REGULAR.map(toVerb(false))]
+  .sort((a, b) => a.base.localeCompare(b.base));
+
+export const VERB_BY_BASE = Object.fromEntries(VERBS.map(v => [v.base, v]));
