@@ -1,105 +1,62 @@
 import { state } from '../core/store.js';
-import { TENSES, TENSE_BY_ID, SUBJECTS, poolKeys } from '../core/tenses.js';
-import { VERB_BY_BASE } from '../data/verbs.js';
+import { TENSE_BY_ID, poolKeys } from '../core/tenses.js';
 import { pickKey } from '../core/srs.js';
-import { rand, cap, normalize, esc } from '../core/util.js';
-import { tr, tenseName, lang } from '../i18n.js';
-import { icon } from '../ui/icons.js';
-import { speakButton } from '../ui/speech.js';
-import { recordAnswer, comboBadge, refreshCombo } from '../ui/practice.js';
+import { tr, tenseName } from '../i18n.js';
+import { backLink, viewHead, chipRow } from '../ui/components.js';
+import { conjQuestion, questionFromKey, pickForm } from '../ui/questions.js';
+import { levelTenses, levelVerbs } from '../ui/level.js';
+
+const FORM_SETTINGS = ['aff', 'neg', 'q', 'mix'];
 
 export default function conjugate(el, param) {
-  let filter = TENSE_BY_ID[param] ? param : 'all';
-  let current = null;
-  let answered = false;
+  let tenseFilter = TENSE_BY_ID[param] ? param : 'all';
+  let formSetting = 'aff';
+  let lastKey = null;
 
   el.innerHTML = `
-    <header class="view-head">
-      <h1>${tr('nav_conjugate')}</h1>
-      <p class="muted">${tr('conj_help')}</p>
-    </header>
-    <div class="chips" id="chips"></div>
+    ${backLink('#/practice', tr('nav_practice'))}
+    ${viewHead(tr('nav_conjugate'), tr('conj_help'))}
+    <div class="chips" id="forms"></div>
+    <div class="chips" id="tenses"></div>
     <div class="card quiz" id="card"></div>`;
 
-  const chips = el.querySelector('#chips');
+  const forms = el.querySelector('#forms');
+  const tenses = el.querySelector('#tenses');
   const card = el.querySelector('#card');
 
+  // Los tiempos de tu nivel; si llegas desde la teoría de uno superior, también se muestra
+  const available = () => {
+    const list = levelTenses();
+    return tenseFilter !== 'all' && !list.includes(TENSE_BY_ID[tenseFilter])
+      ? [...list, TENSE_BY_ID[tenseFilter]]
+      : list;
+  };
+
   function drawChips() {
-    chips.innerHTML = [['all', tr('all')], ...TENSES.map(t => [t.id, tenseName(t)])]
-      .map(([id, label]) => `<button class="chip-btn ${id === filter ? 'active' : ''}" data-filter="${id}">${label}</button>`)
-      .join('');
+    forms.innerHTML = chipRow(FORM_SETTINGS.map(f => [f, tr(`form_${f}`)]), formSetting, 'form');
+    tenses.innerHTML = chipRow([['all', tr('all')], ...available().map(t => [t.id, tenseName(t)])], tenseFilter, 'tense');
   }
 
-  chips.onclick = e => {
-    const b = e.target.closest('[data-filter]');
+  forms.onclick = e => {
+    const b = e.target.closest('[data-form]');
     if (!b) return;
-    filter = b.dataset.filter;
+    formSetting = b.dataset.form;
+    drawChips();
+    next();
+  };
+  tenses.onclick = e => {
+    const b = e.target.closest('[data-tense]');
+    if (!b) return;
+    tenseFilter = b.dataset.tense;
     drawChips();
     next();
   };
 
   function next() {
-    const tenses = filter === 'all' ? TENSES : [TENSE_BY_ID[filter]];
-    const key = pickKey(poolKeys('conj', tenses), state.cards, Date.now(), Math.random, current?.key);
-    const [, base, tenseId] = key.split('|');
-    const v = VERB_BY_BASE[base];
-    const tense = TENSE_BY_ID[tenseId];
-    const s = rand(SUBJECTS);
-    current = { key, v, tense, s, answer: tense.phrase(v, s) };
-    answered = false;
-
-    card.innerHTML = `
-      <div class="quiz-top">
-        <span class="pill">${tenseName(tense)}</span>
-        ${comboBadge()}
-      </div>
-      <p class="prompt">
-        <span class="subject">${cap(s)}</span>
-        <span class="verb">${v.base}</span>
-        ${speakButton(v.base)}
-      </p>
-      <p class="muted meaning">
-        ${v.es}
-        <button type="button" class="link" id="hint">${icon('Lightbulb', 16)} ${tr('hint')}</button>
-      </p>
-      <p class="hint-text" id="hint-text" hidden>${tense.formula[lang]}</p>
-      <form class="answer" id="form" autocomplete="off">
-        <input id="ans" autocapitalize="off" autocorrect="off" spellcheck="false"
-          placeholder="${tr('type_answer')}" aria-label="${tr('type_answer')}">
-        <button class="btn primary" id="btn">${tr('check')}</button>
-      </form>
-      <div class="feedback" id="fb" aria-live="polite"></div>`;
-
-    card.querySelector('#hint').onclick = e => {
-      card.querySelector('#hint-text').hidden = false;
-      e.currentTarget.hidden = true;
-    };
-    card.querySelector('#form').onsubmit = submit;
-    card.querySelector('#ans').focus();
-  }
-
-  function submit(e) {
-    e.preventDefault();
-    if (answered) return next();
-    const input = card.querySelector('#ans');
-    if (!input.value.trim()) return input.focus();
-
-    answered = true;
-    const ok = normalize(input.value) === current.answer;
-    input.readOnly = true;
-    input.classList.add(ok ? 'is-ok' : 'is-bad');
-
-    const full = `${cap(current.s)} ${current.answer}`;
-    card.querySelector('#fb').innerHTML = `
-      <p class="${ok ? 'ok' : 'bad'} verdict">${icon(ok ? 'Check' : 'X', 18)} ${ok ? tr('correct') : tr('wrong')}</p>
-      <p class="full">${esc(full)} ${speakButton(full)}</p>
-      <p class="muted small">${tenseName(current.tense)} · ${current.tense.formula[lang]}</p>`;
-    const btn = card.querySelector('#btn');
-    btn.textContent = tr('next');
-    btn.focus();
-
-    recordAnswer({ ok, tenseId: current.tense.id, key: current.key, card });
-    refreshCombo(card);
+    const list = tenseFilter === 'all' ? levelTenses() : [TENSE_BY_ID[tenseFilter]];
+    const key = pickKey(poolKeys('conj', list, levelVerbs()), state.cards, Date.now(), Math.random, lastKey);
+    lastKey = key;
+    conjQuestion(card, questionFromKey(key, pickForm(formSetting)), { onNext: next });
   }
 
   drawChips();

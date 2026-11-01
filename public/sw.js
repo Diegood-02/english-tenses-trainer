@@ -1,8 +1,8 @@
 // Service worker: la app funciona sin conexión después de la primera visita.
 // Navegación: red primero (para recibir actualizaciones), caché si no hay conexión.
 // Recursos (JS, CSS, fuentes con hash): caché primero y se actualiza en segundo plano.
-const CACHE = 'ett-v2';
-const SHELL = ['./', './manifest.webmanifest', './icon.svg'];
+const CACHE = 'ett-v3';
+const SHELL = ['./', './manifest.webmanifest', './icon.svg', './icon-512.png'];
 
 self.addEventListener('install', event => {
   event.waitUntil(caches.open(CACHE).then(cache => cache.addAll(SHELL)));

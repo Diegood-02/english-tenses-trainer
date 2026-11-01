@@ -1,5 +1,7 @@
 import { describe, it, expect } from 'vitest';
-import { review, pickKey, dueCount, masteredCount, INTERVALS } from '../src/core/srs.js';
+import {
+  review, pickKey, dueCount, masteredCount, errorKeys, INTERVALS,
+} from '../src/core/srs.js';
 
 const NOW = 1_000_000_000_000;
 
@@ -68,4 +70,23 @@ describe('contadores', () => {
 
   it('cuenta las vencidas', () => expect(dueCount(cards, NOW)).toBe(2));
   it('cuenta las dominadas (caja 4 o más)', () => expect(masteredCount(cards)).toBe(2));
+});
+
+describe('errorKeys', () => {
+  it('lista solo las preguntas falladas por última vez de los modos repasables', () => {
+    const cards = {
+      'conj|write|pres_perf': { box: 0, due: NOW },
+      'id|go|past_simple': { box: 0, due: NOW },
+      'lis|eat|fut_simple': { box: 0, due: NOW },
+      'conj|read|pres_simple': { box: 2, due: NOW },
+      'card|write': { box: 0, due: NOW },
+    };
+    expect(errorKeys(cards).sort()).toEqual(['conj|write|pres_perf', 'id|go|past_simple', 'lis|eat|fut_simple']);
+  });
+
+  it('un acierto saca la pregunta de la lista', () => {
+    const key = 'conj|write|pres_perf';
+    const cards = { [key]: review(review(undefined, false, NOW), true, NOW) };
+    expect(errorKeys(cards)).toEqual([]);
+  });
 });

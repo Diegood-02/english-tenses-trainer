@@ -31,3 +31,8 @@ export const dueCount = (cards, now) =>
 
 export const masteredCount = cards =>
   Object.values(cards).filter(c => c.box >= MASTERED_BOX).length;
+
+// Errores pendientes: tarjetas cuya última respuesta fue incorrecta (caja 0)
+export const REVIEW_MODES = ['conj', 'id', 'lis'];
+export const errorKeys = cards => Object.keys(cards)
+  .filter(k => cards[k].box === 0 && REVIEW_MODES.includes(k.split('|')[0]));

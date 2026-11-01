@@ -2,7 +2,7 @@ import { review } from './srs.js';
 
 // Funciones puras sobre el estado de progreso: reciben el estado y devuelven uno nuevo.
 export const DAILY_GOAL = 20;
-export const XP = { correct: 10, hangmanWin: 15 };
+export const XP = { correct: 10, flashcard: 5, dictation: 15, hangmanWin: 15 };
 
 export const defaultState = () => ({
   tenses: {},
@@ -11,6 +11,7 @@ export const defaultState = () => ({
   xp: 0,
   streak: { count: 0, last: null },
   daily: { date: null, count: 0 },
+  timedBest: 0,
 });
 
 const pad = n => String(n).padStart(2, '0');
@@ -48,14 +49,17 @@ export const dailyCount = (s, today) => (s.daily.date === today ? s.daily.count 
 const bumpDaily = (daily, today, n) =>
   ({ date: today, count: (daily.date === today ? daily.count : 0) + n });
 
-export function applyAnswer(s, { tenseId, key, ok, now }) {
+// tenseId es opcional: las tarjetas de verbos no cuentan para las estadísticas por tiempo
+export function applyAnswer(s, { tenseId, key, ok, now, xp = XP.correct }) {
   const today = dayKey(new Date(now));
   const stat = s.tenses[tenseId] || { ok: 0, total: 0 };
   return {
     ...s,
-    tenses: { ...s.tenses, [tenseId]: { ok: stat.ok + (ok ? 1 : 0), total: stat.total + 1 } },
+    tenses: tenseId
+      ? { ...s.tenses, [tenseId]: { ok: stat.ok + (ok ? 1 : 0), total: stat.total + 1 } }
+      : s.tenses,
     cards: { ...s.cards, [key]: review(s.cards[key], ok, now) },
-    xp: s.xp + (ok ? XP.correct : 0),
+    xp: s.xp + (ok ? xp : 0),
     daily: bumpDaily(s.daily, today, ok ? 1 : 0),
     streak: touchStreak(s.streak, today),
   };
@@ -71,6 +75,8 @@ export function applyHangman(s, won, now) {
     streak: touchStreak(s.streak, today),
   };
 }
+
+export const applyTimed = (s, score) => (score > s.timedBest ? { ...s, timedBest: score } : s);
 
 // Tiempos con menor precisión (mínimo `minTotal` respuestas)
 export function weakTenses(stats, limit, minTotal = 3) {

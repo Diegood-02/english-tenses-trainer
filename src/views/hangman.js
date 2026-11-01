@@ -1,10 +1,11 @@
-import { VERBS } from '../data/verbs.js';
 import { rand } from '../core/util.js';
 import { tr } from '../i18n.js';
 import { icon } from '../ui/icons.js';
 import { speakButton } from '../ui/speech.js';
 import { animate } from '../ui/effects.js';
 import { recordHangmanResult } from '../ui/practice.js';
+import { backLink } from '../ui/components.js';
+import { levelVerbs } from '../ui/level.js';
 
 const FORMS = ['base', 'past', 'pp'];
 const LIVES = 6;
@@ -14,6 +15,7 @@ export default function hangman(el) {
   let game = null;
 
   el.innerHTML = `
+    ${backLink('#/practice', tr('nav_practice'))}
     <header class="view-head">
       <h1>${tr('nav_hangman')}</h1>
       <p class="muted">${tr('hangman_help')}</p>
@@ -44,7 +46,7 @@ export default function hangman(el) {
   const card = $('#card');
 
   function newGame() {
-    const v = rand(VERBS);
+    const v = rand(levelVerbs());
     const form = rand(FORMS);
     const word = v[form];
     // Se muestra ~40% de las letras (nunca la primera); el resto hay que adivinarlo
@@ -110,7 +112,7 @@ export default function hangman(el) {
     $('#fb').innerHTML = `
       <p class="${won ? 'ok' : 'bad'} verdict">${icon(won ? 'Check' : 'X', 18)} ${won ? tr('won') : tr('lost')}</p>
       <p class="full">${game.word} ${speakButton(game.word)}
-        <span class="muted small">${v.base} · ${v.past} · ${v.pp}</span></p>`;
+        <span class="muted small">${v.base} · ${v.pastLabel} · ${v.pp}</span></p>`;
     $('#btn').hidden = false;
     $('#btn').focus();
     recordHangmanResult(won, card);

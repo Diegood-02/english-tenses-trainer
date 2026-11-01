@@ -1,12 +1,14 @@
 import {
   createElement, House, BookOpen, PenLine, Target, Puzzle, ChartColumn, Flame, Sun, Moon,
   Monitor, Volume2, Zap, Trophy, ArrowRight, ArrowLeft, Lightbulb, Search, Check, X,
-  RotateCcw, Heart,
+  RotateCcw, Heart, Snail, Headphones, NotebookPen, Timer, Layers, GraduationCap, History,
+  Dumbbell, Eraser, PartyPopper,
 } from 'lucide';
 
 const ICONS = {
   House, BookOpen, PenLine, Target, Puzzle, ChartColumn, Flame, Sun, Moon, Monitor, Volume2,
-  Zap, Trophy, ArrowRight, ArrowLeft, Lightbulb, Search, Check, X, RotateCcw, Heart,
+  Zap, Trophy, ArrowRight, ArrowLeft, Lightbulb, Search, Check, X, RotateCcw, Heart, Snail,
+  Headphones, NotebookPen, Timer, Layers, GraduationCap, History, Dumbbell, Eraser, PartyPopper,
 };
 
 const cache = new Map();

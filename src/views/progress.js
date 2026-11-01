@@ -1,5 +1,5 @@
 import { state, resetState } from '../core/store.js';
-import { levelInfo, currentStreak, dayKey } from '../core/progress.js';
+import { levelInfo } from '../core/progress.js';
 import { masteredCount } from '../core/srs.js';
 import { TENSES } from '../core/tenses.js';
 import { tr, tenseName } from '../i18n.js';
@@ -12,7 +12,6 @@ export default function progress(el) {
       .reduce((a, s) => ({ ok: a.ok + s.ok, total: a.total + s.total }), { ok: 0, total: 0 });
     const accuracy = totals.total ? Math.round((totals.ok / totals.total) * 100) : 0;
     const lv = levelInfo(state.xp);
-    const streak = currentStreak(state.streak, dayKey(new Date()));
 
     el.innerHTML = `
       <header class="view-head">
@@ -23,8 +22,8 @@ export default function progress(el) {
       <section class="tiles four">
         <div class="tile"><b>${totals.total}</b><span class="muted small">${tr('answers')}</span></div>
         <div class="tile"><b>${accuracy}%</b><span class="muted small">${tr('accuracy')}</span></div>
-        <div class="tile"><b>${tr('lvl')} ${lv.level}</b><span class="muted small">${state.xp} XP</span></div>
-        <div class="tile"><b>${streak}</b><span class="muted small">${tr('streak_days')}</span></div>
+        <div class="tile"><b>${tr('rank')} ${lv.level}</b><span class="muted small">${state.xp} XP</span></div>
+        <div class="tile"><b>${state.timedBest}</b><span class="muted small">${tr('nav_timed')}</span></div>
       </section>
 
       <section class="card table-card">

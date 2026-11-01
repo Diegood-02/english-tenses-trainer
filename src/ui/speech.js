@@ -5,14 +5,14 @@ import { tr } from '../i18n.js';
 // Pronunciación con la voz del navegador (Web Speech API); se oculta si no hay soporte.
 export const canSpeak = 'speechSynthesis' in window;
 
-export function speak(text) {
+export function speak(text, rate = 0.9) {
   if (!canSpeak) return;
   speechSynthesis.cancel();
   const utterance = new SpeechSynthesisUtterance(text);
   utterance.lang = 'en-US';
-  utterance.rate = 0.9;
-  const voice = speechSynthesis.getVoices().find(v => v.lang === 'en-US')
-    || speechSynthesis.getVoices().find(v => v.lang.startsWith('en'));
+  utterance.rate = rate;
+  const voices = speechSynthesis.getVoices();
+  const voice = voices.find(v => v.lang === 'en-US') || voices.find(v => v.lang.startsWith('en'));
   if (voice) utterance.voice = voice;
   speechSynthesis.speak(utterance);
 }

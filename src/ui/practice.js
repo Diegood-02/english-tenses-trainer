@@ -9,12 +9,12 @@ import { tr } from '../i18n.js';
 // Aciertos seguidos en la sesión actual (no se guarda)
 let combo = 0;
 
-export function recordAnswer({ ok, tenseId, key, card }) {
+export function recordAnswer({ ok, tenseId, key, card, xp = XP.correct }) {
   const now = Date.now();
   const before = snapshot(now);
-  commit(applyAnswer(state, { tenseId, key, ok, now }));
+  commit(applyAnswer(state, { tenseId, key, ok, now, xp }));
   combo = ok ? combo + 1 : 0;
-  reward({ ok, card, gained: ok ? XP.correct : 0, before, now });
+  reward({ ok, card, gained: ok ? xp : 0, before, now });
 }
 
 export function recordHangmanResult(won, card) {
@@ -26,7 +26,7 @@ export function recordHangmanResult(won, card) {
 
 const snapshot = now => ({
   daily: dailyCount(state, dayKey(new Date(now))),
-  level: levelInfo(state.xp).level,
+  rank: levelInfo(state.xp).level,
 });
 
 function reward({ ok, card, gained, before, now }) {
@@ -34,9 +34,9 @@ function reward({ ok, card, gained, before, now }) {
   if (gained) floatText(card, `+${gained} XP`);
 
   const after = snapshot(now);
-  if (after.level > before.level) {
+  if (after.rank > before.rank) {
     celebrate();
-    toast(tr('level_up', { n: after.level }));
+    toast(tr('rank_up', { n: after.rank }));
   } else if (before.daily < DAILY_GOAL && after.daily >= DAILY_GOAL) {
     celebrate();
     toast(tr('goal_done'));

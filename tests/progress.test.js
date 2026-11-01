@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest';
 import {
-  addDays, applyAnswer, applyHangman, currentStreak, dailyCount, dayKey, defaultState,
+  addDays, applyAnswer, applyHangman, applyTimed, currentStreak, dailyCount, dayKey, defaultState,
   levelInfo, touchStreak, weakTenses, XP,
 } from '../src/core/progress.js';
 
@@ -79,6 +79,23 @@ describe('applyAnswer', () => {
     const s = { ...defaultState(), ...v1 };
     const s1 = applyAnswer(s, { tenseId: 'pres_simple', key: 'k', ok: true, now });
     expect(s1.tenses.pres_simple).toEqual({ ok: 3, total: 4 });
+  });
+});
+
+describe('otros tipos de respuesta', () => {
+  const now = new Date(2026, 10, 1, 12).getTime();
+
+  it('las tarjetas no cambian las estadísticas por tiempo y usan su propio XP', () => {
+    const s1 = applyAnswer(defaultState(), { key: 'card|write', ok: true, now, xp: XP.flashcard });
+    expect(s1.tenses).toEqual({});
+    expect(s1.xp).toBe(XP.flashcard);
+    expect(s1.cards['card|write'].box).toBe(1);
+  });
+
+  it('el récord del contrarreloj solo sube', () => {
+    const s1 = applyTimed(defaultState(), 12);
+    expect(s1.timedBest).toBe(12);
+    expect(applyTimed(s1, 8)).toBe(s1);
   });
 });
 
